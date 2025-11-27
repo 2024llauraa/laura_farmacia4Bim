@@ -1,48 +1,53 @@
-// Seleciona o formulário
 const form = document.getElementById('registerForm');
+    const API_BASE_URL = 'http://localhost:3001';
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault(); // evita recarregar a página
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-  // Coleta os valores dos campos
-  const nome = document.getElementById('nome').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const senha = document.getElementById('senha').value.trim();
-  const telefone = document.getElementById('telefone').value.trim();
-  const data_nascimento = document.getElementById('data_nascimento').value;
-  const endereco = document.getElementById('endereco').value.trim();
+      const nome = document.getElementById('nome').value.trim();
+      const cpf = document.getElementById('cpf').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const senha = document.getElementById('senha').value.trim();
+      const telefone = document.getElementById('telefone').value.trim();
+      const data_nascimento = document.getElementById('data_nascimento').value;
+      const endereco = document.getElementById('endereco').value.trim();
 
-  if (!nome || !email || !senha || !endereco) {
-    alert('Preencha todos os campos obrigatórios!');
-    return;
-  }
+      // Validações básicas
+      if (!nome || !cpf || !email || !senha || !endereco) {
+        alert('Por favor, preencha todos os campos obrigatórios.');
+        return;
+      }
 
-  try {
-    // Envia os dados para o backend
-    const response = await fetch('http://localhost:3001/login/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nome,
-        email,
-        senha,
-        telefone,
-        data_nascimento,
-        endereco
-      })
+      if (senha.length < 6) {
+        alert('A senha deve ter no mínimo 6 caracteres.');
+        return;
+      }
+
+      try {
+        const body = {
+          cpf_pessoa: cpf.replace(/\D/g, ''), // Remove formatação
+          nome_pessoa: nome,
+          email_pessoa: email,
+          senha_pessoa: senha,
+          data_nascimento_pessoa: data_nascimento || null,
+          endereco_pessoa: endereco
+        };
+        const res = await fetch(API_BASE_URL + '/login/registro', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert('Cadastro realizado com sucesso! Faça login para continuar.');
+          window.location.href = './login.html';
+        } else {
+          alert(data.message || 'Erro ao cadastrar. Tente novamente.');
+        }
+      } catch (error) {
+        console.error('Erro ao cadastrar:', error);
+        alert('Erro de conexão. Tente novamente.');
+      }
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      alert(data.message || 'Erro ao cadastrar');
-      return;
-    }
-
-    alert('Cadastro realizado com sucesso! 🎉 Agora faça login.');
-    window.location.href = 'login.html'; // redireciona para login
-  } catch (error) {
-    console.error('Erro:', error);
-    alert('Erro ao conectar ao servidor.');
-  }
-});

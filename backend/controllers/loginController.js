@@ -1,6 +1,105 @@
 const db = require('../database.js');
 const bcrypt = require('bcryptjs');
 
+exports.registro = async (req, res) => {
+  console.log("vai - loginController -> registro")
+  console.log(req.body)
+  const {
+    cpf_pessoa, nome_pessoa,data_nascimento_pessoa, endereco_pessoa, email_pessoa, senha_pessoa
+  } = req.body;
+
+  console.log('📝 Tentativa de registro:', { email_pessoa, cpf_pessoa });
+
+  // Validações básicas
+  if (!nome_pessoa || !email_pessoa || !senha_pessoa) {
+    return res.status(400).json({ error: 'Nome, e-mail e senha são obrigatórios.' });
+  }
+
+  if (!cpf_pessoa || cpf_pessoa.length !== 11) {
+    return res.status(400).json({ error: 'CPF deve ter 11 dígitos.' });
+  }
+
+  if (senha_pessoa.length > 20) {
+    return res.status(400).json({ error: 'Senha deve ter no máximo 20 caracteres.' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email_pessoa)) {
+    return res.status(400).json({ error: 'Formato de email inválido.' });
+  }
+
+  try {
+    // Verificar se CPF ou email já existem
+    const checkUser = await db.query(
+      'SELECT cpf_pessoa, email_pessoa FROM pessoa WHERE cpf_pessoa = $1 OR email_pessoa = $2',
+      [cpf_pessoa, email_pessoa]
+    );
+
+    if (checkUser.rows.length > 0) {
+      if (checkUser.rows[0].cpf_pessoa === cpf_pessoa) {
+        return res.status(400).json({ error: 'CPF já cadastrado.' });
+      }
+      if (checkUser.rows[0].email_pessoa === email_pessoa) {
+        return res.status(400).json({ error: 'E-mail já cadastrado.' });
+      }
+    }
+
+    // Criptografar a senha
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(senha_pessoa, salt);
+
+    // Inserir pessoa
+    const resultPessoa = await db.query(
+      `INSERT INTO pessoa (cpf_pessoa, nome_pessoa,email_pessoa, senha_pessoa)
+       VALUES ($1, $2, $3, $4)
+       RETURNING cpf_pessoa, nome_pessoa, email_pessoa`,
+      [cpf_pessoa, nome_pessoa, email_pessoa, hashedPassword] // Usar a senha criptografada
+    );
+
+    const user = resultPessoa.rows[0];
+
+    // Inserir cliente
+    await db.query(
+      'INSERT INTO cliente (cpf_pessoa) VALUES ($1)',
+      [cpf_pessoa]
+    );
+
+    console.log('✅ Usuário registrado:', user.email_pessoa);
+
+    // Criar cookie de sessão
+    res.cookie('usuarioLogado', user.nome_pessoa, {
+      sameSite: 'None',
+      secure: true,
+      httpOnly: true,
+      path: '/',
+      maxAge: 24 * 60 * 60 * 1000, // 1 dia
+    });
+
+    res.cookie('usuarioCpf', user.cpf_pessoa, {
+      sameSite: 'None',
+      secure: true,
+      httpOnly: true,
+      path: '/',
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    res.json({
+      message: 'Usuário registrado com sucesso.',
+      user: {
+        cpf: user.cpf_pessoa,
+        nome: user.nome_pessoa,
+        email: user.email_pessoa
+      },
+      logged: true
+    });
+
+  } catch (err) {
+    console.error('❌ Erro no registro:', err);
+    res.status(500).json({ error: 'Erro ao registrar usuário.' });
+  }
+}
+
+
 // Funções do controller
 exports.listarPessoas = async (req, res) => {
   try {
@@ -17,7 +116,7 @@ exports.criarPessoa = async (req, res) => {
   console.log('Criando pessoa com dados:', req.body);
   try {
     const { cpf_pessoa, nome_pessoa, email_pessoa, senha_pessoa, data_nascimento_pessoa, endereco_pessoa } = req.body;
-    
+
     // Criptografar a senha
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(senha_pessoa, salt);

@@ -6,99 +6,101 @@ const bcrypt = require('bcryptjs');
 // REGISTRO DE NOVO USUÁRIO
 // ======================================
 exports.registro = async (req, res) => {
-  const {
-   cpf_pessoa, nome_pessoa, email_pessoa, senha_pessoa, data_nascimento_pessoa, endereco_pessoa
-  } = req.body;
 
-  console.log('📝 Tentativa de registro:', { email_pessoa, cpf_pessoa });
+  console.log("authController -> registro ----------------------------------------");
+  // const {
+  //   cpf_pessoa, nome_pessoa, email_pessoa, senha_pessoa, data_nascimento_pessoa, endereco_pessoa
+  // } = req.body;
 
-  // Validações básicas
-  if (!nome_pessoa || !email_pessoa || !senha_pessoa) {
-    return res.status(400).json({ error: 'Nome, e-mail e senha são obrigatórios.' });
-  }
+  // console.log('📝 Tentativa de registro:', { email_pessoa, cpf_pessoa });
 
-  if (!cpf_pessoa || cpf_pessoa.length !== 11) {
-    return res.status(400).json({ error: 'CPF deve ter 11 dígitos.' });
-  }
+  // // Validações básicas
+  // if (!nome_pessoa || !email_pessoa || !senha_pessoa) {
+  //   return res.status(400).json({ error: 'Nome, e-mail e senha são obrigatórios.' });
+  // }
 
-  if (senha_pessoa.length > 20) {
-    return res.status(400).json({ error: 'Senha deve ter no máximo 20 caracteres.' });
-  }
+  // if (!cpf_pessoa || cpf_pessoa.length !== 11) {
+  //   return res.status(400).json({ error: 'CPF deve ter 11 dígitos.' });
+  // }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email_pessoa)) {
-    return res.status(400).json({ error: 'Formato de email inválido.' });
-  }
+  // if (senha_pessoa.length > 20) {
+  //   return res.status(400).json({ error: 'Senha deve ter no máximo 20 caracteres.' });
+  // }
 
-  try {
-    // Verificar se CPF ou email já existem
-    const checkUser = await db.query(
-      'SELECT cpf_pessoa, email_pessoa FROM pessoa WHERE cpf_pessoa = $1 OR email_pessoa = $2',
-      [cpf_pessoa,email_pessoa]
-    );
+  // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // if (!emailRegex.test(email_pessoa)) {
+  //   return res.status(400).json({ error: 'Formato de email inválido.' });
+  // }
 
-    if (checkUser.rows.length > 0) {
-      if (checkUser.rows[0].cpf_pessoa === cpf_pessoa) {
-        return res.status(400).json({ error: 'CPF já cadastrado.' });
-      }
-      if (checkUser.rows[0].email_pessoa ===email_pessoa) {
-        return res.status(400).json({ error: 'E-mail já cadastrado.' });
-      }
-    }
+  // try {
+  //   // Verificar se CPF ou email já existem
+  //   const checkUser = await db.query(
+  //     'SELECT cpf_pessoa, email_pessoa FROM pessoa WHERE cpf_pessoa = $1 OR email_pessoa = $2',
+  //     [cpf_pessoa, email_pessoa]
+  //   );
 
-    // Criptografar a senha
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(senha_pessoa, salt);
+  //   if (checkUser.rows.length > 0) {
+  //     if (checkUser.rows[0].cpf_pessoa === cpf_pessoa) {
+  //       return res.status(400).json({ error: 'CPF já cadastrado.' });
+  //     }
+  //     if (checkUser.rows[0].email_pessoa === email_pessoa) {
+  //       return res.status(400).json({ error: 'E-mail já cadastrado.' });
+  //     }
+  //   }
 
-    // Inserir pessoa
-    const resultPessoa = await db.query(
-      `INSERT INTO pessoa (cpf_pessoa, nome_pessoa,email_pessoa, senha_pessoa)
-       VALUES ($1, $2, $3, $4)
-       RETURNING cpf_pessoa, nome_pessoa, email_pessoa`,
-      [cpf_pessoa, nome_pessoa, email_pessoa, hashedPassword] // Usar a senha criptografada
-    );
+  //   // Criptografar a senha
+  //   const salt = await bcrypt.genSalt(10);
+  //   const hashedPassword = await bcrypt.hash(senha_pessoa, salt);
 
-    const user = resultPessoa.rows[0];
+  //   // Inserir pessoa
+  //   const resultPessoa = await db.query(
+  //     `INSERT INTO pessoa (cpf_pessoa, nome_pessoa,email_pessoa, senha_pessoa)
+  //      VALUES ($1, $2, $3, $4)
+  //      RETURNING cpf_pessoa, nome_pessoa, email_pessoa`,
+  //     [cpf_pessoa, nome_pessoa, email_pessoa, hashedPassword] // Usar a senha criptografada
+  //   );
 
-    // Inserir cliente
-    await db.query(
-      'INSERT INTO cliente (cpf_pessoa) VALUES ($1)',
-      [cpf_pessoa]
-    );
+  //   const user = resultPessoa.rows[0];
 
-    console.log('✅ Usuário registrado:', user.email_pessoa);
+  //   // Inserir cliente
+  //   await db.query(
+  //     'INSERT INTO cliente (cpf_pessoa) VALUES ($1)',
+  //     [cpf_pessoa]
+  //   );
 
-    // Criar cookie de sessão
-    res.cookie('usuarioLogado', user.nome_pessoa, {
-      sameSite: 'None',
-      secure: true,
-      httpOnly: true,
-      path: '/',
-      maxAge: 24 * 60 * 60 * 1000, // 1 dia
-    });
+  //   console.log('✅ Usuário registrado:', user.email_pessoa);
 
-    res.cookie('usuarioCpf', user.cpf_pessoa, {
-      sameSite: 'None',
-      secure: true,
-      httpOnly: true,
-      path: '/',
-      maxAge: 24 * 60 * 60 * 1000,
-    });
+  //   // Criar cookie de sessão
+  //   res.cookie('usuarioLogado', user.nome_pessoa, {
+  //     sameSite: 'None',
+  //     secure: true,
+  //     httpOnly: true,
+  //     path: '/',
+  //     maxAge: 24 * 60 * 60 * 1000, // 1 dia
+  //   });
 
-    res.json({
-      message: 'Usuário registrado com sucesso.',
-      user: {
-        cpf: user.cpf_pessoa,
-        nome: user.nome_pessoa,
-        email: user.email_pessoa
-      },
-      logged: true
-    });
+  //   res.cookie('usuarioCpf', user.cpf_pessoa, {
+  //     sameSite: 'None',
+  //     secure: true,
+  //     httpOnly: true,
+  //     path: '/',
+  //     maxAge: 24 * 60 * 60 * 1000,
+  //   });
 
-  } catch (err) {
-    console.error('❌ Erro no registro:', err);
-    res.status(500).json({ error: 'Erro ao registrar usuário.' });
-  }
+  //   res.json({
+  //     message: 'Usuário registrado com sucesso.',
+  //     user: {
+  //       cpf: user.cpf_pessoa,
+  //       nome: user.nome_pessoa,
+  //       email: user.email_pessoa
+  //     },
+  //     logged: true
+  //   });
+
+  // } catch (err) {
+  //   console.error('❌ Erro no registro:', err);
+  //   res.status(500).json({ error: 'Erro ao registrar usuário.' });
+  // }
 };
 
 // ======================================
@@ -133,7 +135,7 @@ exports.login = async (req, res) => {
 
     // Verificar senha (agora com bcrypt)
     const isMatch = await bcrypt.compare(senha_usuario, user.senha_pessoa);
-    
+
     if (!isMatch) {
       return res.status(401).json({ error: 'E-mail ou senha inválidos.' });
     }
@@ -213,7 +215,7 @@ exports.verificarLogin = async (req, res) => {
         secure: true,
         httpOnly: true,
         path: '/',
-        });
+      });
       return res.json({ logged: false });
     }
 
@@ -240,7 +242,7 @@ exports.verificarLogin = async (req, res) => {
 exports.logout = (req, res) => {
   console.log('\n👋 [LOGOUT] Iniciando processo de logout...');
   console.log('════════════════════════════════════════');
-  
+
   // Configurações comuns dos cookies
   const cookieOptions = {
     sameSite: 'None',
@@ -248,7 +250,7 @@ exports.logout = (req, res) => {
     httpOnly: true,
     path: '/',
   };
-  
+
   // Lista completa de cookies para limpar
   const cookiesParaLimpar = [
     'usuarioLogado',
@@ -260,13 +262,13 @@ exports.logout = (req, res) => {
     'userType',
     'userCargo'
   ];
-  
+
   // Limpar todos os cookies
   cookiesParaLimpar.forEach(cookieName => {
     res.clearCookie(cookieName, cookieOptions);
     console.log(`   🗑️ Cookie limpo: ${cookieName}`);
   });
-  
+
   console.log('✅ [LOGOUT] Todos os cookies removidos');
   console.log('════════════════════════════════════════\n');
 
@@ -347,9 +349,9 @@ exports.verificarCodigo = async (req, res) => {
     const codigoData = codigosRecuperacao.get(email_pessoa);
 
     if (!codigoData) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        error: 'Código inválido ou expirado. Solicite um novo código.' 
+        error: 'Código inválido ou expirado. Solicite um novo código.'
       });
     }
 
@@ -358,9 +360,9 @@ exports.verificarCodigo = async (req, res) => {
     if (minutosDecorridos > 10) {
       codigosRecuperacao.delete(email_pessoa);
       console.log('❌ Código expirado para:', email_pessoa);
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        error: 'Código expirado. Solicite um novo código.' 
+        error: 'Código expirado. Solicite um novo código.'
       });
     }
 
@@ -370,9 +372,9 @@ exports.verificarCodigo = async (req, res) => {
     if (codigoData.tentativas >= 5) {
       codigosRecuperacao.delete(email_pessoa);
       console.log('❌ Muitas tentativas para:', email_pessoa);
-      return res.status(429).json({ 
+      return res.status(429).json({
         success: false,
-        error: 'Muitas tentativas. Solicite um novo código.' 
+        error: 'Muitas tentativas. Solicite um novo código.'
       });
     }
 
@@ -381,9 +383,9 @@ exports.verificarCodigo = async (req, res) => {
       codigoData.tentativas++;
       const tentativasRestantes = 5 - codigoData.tentativas;
       console.log(`❌ Código incorreto (Tentativa ${codigoData.tentativas}/5)`);
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        error: `Código incorreto. ${tentativasRestantes} tentativa(s) restante(s).` 
+        error: `Código incorreto. ${tentativasRestantes} tentativa(s) restante(s).`
       });
     }
 
@@ -396,9 +398,9 @@ exports.verificarCodigo = async (req, res) => {
 
   } catch (err) {
     console.error('❌ Erro ao verificar código:', err);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      error: 'Erro ao verificar código' 
+      error: 'Erro ao verificar código'
     });
   }
 };
@@ -412,17 +414,17 @@ exports.redefinirSenha = async (req, res) => {
   console.log('\n🔑 [REDEFINIR] Alterando senha para:', email_pessoa);
 
   if (!email_pessoa || !code || !nova_senha) {
-    return res.status(400).json({ 
+    return res.status(400).json({
       success: false,
-      error: 'Email, código e nova senha são obrigatórios' 
+      error: 'Email, código e nova senha são obrigatórios'
     });
   }
 
   // Validar senha
   if (nova_senha.length < 6 || nova_senha.length > 20) {
-    return res.status(400).json({ 
+    return res.status(400).json({
       success: false,
-      error: 'A senha deve ter entre 6 e 20 caracteres' 
+      error: 'A senha deve ter entre 6 e 20 caracteres'
     });
   }
 
@@ -432,9 +434,9 @@ exports.redefinirSenha = async (req, res) => {
 
     if (!codigoData || codigoData.codigo !== code) {
       console.log('❌ Código inválido ao redefinir senha');
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        error: 'Código inválido ou expirado' 
+        error: 'Código inválido ou expirado'
       });
     }
 
@@ -446,9 +448,9 @@ exports.redefinirSenha = async (req, res) => {
 
     if (checkUser.rows.length === 0) {
       console.log('❌ Usuário não encontrado');
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        error: 'Usuário não encontrado' 
+        error: 'Usuário não encontrado'
       });
     }
 
@@ -476,9 +478,9 @@ exports.redefinirSenha = async (req, res) => {
 
   } catch (err) {
     console.error('❌ Erro ao redefinir senha:', err);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      error: 'Erro ao redefinir senha' 
+      error: 'Erro ao redefinir senha'
     });
   }
 };
@@ -545,7 +547,7 @@ exports.atualizarSenha = async (req, res) => {
 
     // Verificar senha atual com bcrypt
     const isMatch = await bcrypt.compare(senha_atual, checkPassword.rows[0].senha_pessoa);
-    
+
     if (!isMatch) {
       return res.status(400).json({ error: 'Senha atual incorreta.' });
     }
