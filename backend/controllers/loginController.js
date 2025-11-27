@@ -2,14 +2,17 @@ const db = require('../database.js');
 const bcrypt = require('bcryptjs');
 
 exports.registro = async (req, res) => {
-  console.log("vai - loginController -> registro")
-  console.log(req.body)
+  console.log("vai - loginController -> registro");
+  console.log("Dados que vieram via requisição");
+  console.log(req.body);
+
+
+
   const {
     cpf_pessoa, nome_pessoa,data_nascimento_pessoa, endereco_pessoa, email_pessoa, senha_pessoa
   } = req.body;
 
-  console.log('📝 Tentativa de registro:', { email_pessoa, cpf_pessoa });
-
+ 
   // Validações básicas
   if (!nome_pessoa || !email_pessoa || !senha_pessoa) {
     return res.status(400).json({ error: 'Nome, e-mail e senha são obrigatórios.' });
@@ -50,17 +53,19 @@ exports.registro = async (req, res) => {
 
     // Inserir pessoa
     const resultPessoa = await db.query(
-      `INSERT INTO pessoa (cpf_pessoa, nome_pessoa,email_pessoa, senha_pessoa)
-       VALUES ($1, $2, $3, $4)
-       RETURNING cpf_pessoa, nome_pessoa, email_pessoa`,
-      [cpf_pessoa, nome_pessoa, email_pessoa, hashedPassword] // Usar a senha criptografada
+      `INSERT INTO pessoa (cpf_pessoa, nome_pessoa,email_pessoa, senha_pessoa,data_nascimento_pessoa,endereco_pessoa)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING cpf_pessoa, nome_pessoa,email_pessoa, senha_pessoa,data_nascimento_pessoa,endereco_pessoa`,
+      [cpf_pessoa, nome_pessoa,email_pessoa, senha_pessoa,data_nascimento_pessoa,endereco_pessoa] // Usar a senha criptografada
     );
 
+    console.log("chegou aqui");
+    
     const user = resultPessoa.rows[0];
 
     // Inserir cliente
     await db.query(
-      'INSERT INTO cliente (cpf_pessoa) VALUES ($1)',
+      'INSERT INTO cliente (pessoa_cpf_pessoa) VALUES ($1)',
       [cpf_pessoa]
     );
 
