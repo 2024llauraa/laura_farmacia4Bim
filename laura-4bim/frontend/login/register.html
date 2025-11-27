@@ -94,7 +94,7 @@
           data_nascimento_pessoa: data_nascimento || null,
           endereco_pessoa: endereco
         };
-        const res = await fetch(API_BASE_URL + '/login/', {
+        const res = await fetch(API_BASE_URL + '/login/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body)

@@ -2,15 +2,20 @@
 async function logout() {
   const API_BASE_URL = 'http://localhost:3001';
   try {
-    const response = await fetch(API_BASE_URL + '/login/logout', {
-      method: 'POST',
+   const response = await fetch(API_BASE_URL + 
+      '/api/auth/logout', {      method: 'POST',
       credentials: 'include' // Envia o cookie
     });
 
     const data = await response.json();
 
-    if (data.status === 'deslogado') {
-      window.location.href = 'http://localhost:3001/menu';
+    // O novo controller retorna 'logged' e 'is_funcionario' diretamente
+    const logged = data.logged;
+    const isFuncionario = data.is_funcionario;
+    const nome = data.nome;
+
+    if (data.logged === false) {
+      window.location.href = '../login/login.html';
     } else {
       alert('Erro ao fazer logout.');
     }
@@ -36,22 +41,27 @@ async function verificarLogin() {
   }
 
   try {
-    const response = await fetch(API_BASE_URL + '/login/verificaSeUsuarioEstaLogado', {
-      method: 'POST',
+    const response = await fetch(API_BASE_URL +
+      '/api/auth/verificarLogin', {     method: 'POST',
       credentials: 'include' // Envia o cookie
     });
 
     const data = await response.json();
 
+    // O novo controller retorna 'logged' e 'is_funcionario' diretamente
+    const logged = data.logged;
+    const isFuncionario = data.is_funcionario;
+    const nome = data.nome;
+
     const menuCadastros = document.getElementById('menuCadastros');
 
-    if (data.status === 'ok') {
+    if (logged) {
       loginBtn.style.display = 'none';
       logoutBtn.style.display = 'block';
-      userNameDisplay.textContent = `Olá, ${data.nome}`;
+      userNameDisplay.textContent = `Olá, ${nome}`;
       
       // Controle de acesso ao menu de cadastros
-      if (data.isFuncionario) {
+      if (isFuncionario) {
         menuCadastros.style.display = 'block';
       } else {
         menuCadastros.style.display = 'none';
@@ -168,5 +178,3 @@ async function loadProducts() {
 // function nomeUsuario() { ... }
 // async function usuarioAutorizado() { ... }
 // async function logout2() { ... }
-
-

@@ -1,14 +1,17 @@
 const express = require('express');
 const router = express.Router();
+const authController = require('../controllers/authController');
 const loginController = require('../controllers/loginController');
 
 // Rotas de autenticação
-router.post('/verificarEmail', loginController.verificarEmail);
-router.post('/verificarSenha', loginController.verificarSenha);
-router.post('/verificaSeUsuarioEstaLogado', loginController.verificaSeUsuarioEstaLogado);
+router.post('/verificarEmail', authController.verificarEmail);
+router.post('/login', authController.login);
+router.post('/verificarLogin', authController.verificarLogin);
+router.post('/register', authController.registro);
+router.post('/verificarSenha', authController.login);
 
 // Rotas de logout e CRUD
-router.post('/logout', loginController.logout);
+router.post('/logout', authController.logout);
 router.get('/', loginController.listarPessoas);
 router.post('/', loginController.criarPessoa);
 router.get('/:id', loginController.obterPessoa);

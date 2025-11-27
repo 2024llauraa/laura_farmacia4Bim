@@ -1,5 +1,5 @@
 //import { query } from '../database.js';
-const { query } = require('../database');
+const { pool, query } = require('../database');
 // Funções do controller
 
 const path = require('path');
@@ -22,29 +22,58 @@ exports.listarPedidos = async (req, res) => {
 
 
 exports.criarPedido = async (req, res) => {
-  //  console.log('Criando pedido com dados:', req.body);
+  console.log('Criando pedido com dados:', req.body);
+  const client = await pool.connect();
   try {
-    const { id_pedido, data_pedido, cliente_pessoa_cpf_pessoa, funcionario_pessoa_cpf_pessoa } = req.body;
+    await client.query('BEGIN');
 
-    const result = await query(
-      'INSERT INTO pedido (id_pedido, data_pedido, cliente_pessoa_cpf_pessoa, funcionario_pessoa_cpf_pessoa) VALUES ($1, $2, $3,$4) RETURNING *',
-      [id_pedido, data_pedido, cliente_pessoa_cpf_pessoa, funcionario_pessoa_cpf_pessoa]
-    );
+    const { valor_total, id_forma_pagamento, itens } = req.body;
+    const cpfCliente = req.cookies.cpfUsuario; // Assume que o CPF do cliente está no cookie
+    const data_pedido = new Date().toISOString();
 
-    res.status(201).json(result.rows[0]);
+    if (!cpfCliente) {
+      await client.query('ROLLBACK');
+      return res.status(401).json({ error: 'Usuário não logado ou CPF não encontrado.' });
+    }
+
+    // 1. Inserir o Pedido
+    const pedidoSql = `
+      INSERT INTO pedido (data_pedido, valor_total, id_forma_pagamento, cliente_pessoa_cpf_pessoa)
+      VALUES ($1, $2, $3, $4) RETURNING id_pedido;
+    `;
+    const pedidoResult = await client.query(pedidoSql, [data_pedido, valor_total, id_forma_pagamento, cpfCliente]);
+    const id_pedido = pedidoResult.rows[0].id_pedido;
+
+    // 2. Inserir os Itens do Pedido
+    for (const item of itens) {
+      const itemSql = `
+        INSERT INTO pedido_has_produto (pedido_id_pedido, produto_id_produto, quantidade, preco_unitario)
+        VALUES ($1, $2, $3, $4);
+      `;
+      await client.query(itemSql, [id_pedido, item.id_produto, item.quantidade, item.preco_unitario]);
+    }
+
+    await client.query('COMMIT');
+    res.status(201).json({ id_pedido, message: 'Pedido criado com sucesso.' });
+
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Erro ao criar pedido:', error);
 
-
-
-    // Verifica se é erro de violação de constraint NOT NULL
     if (error.code === '23502') {
       return res.status(400).json({
         error: 'Dados obrigatórios não fornecidos'
       });
     }
+    if (error.code === '23503') {
+      return res.status(400).json({
+        error: 'Chave estrangeira inválida (cliente, forma de pagamento ou produto não existe).'
+      });
+    }
 
-    res.status(500).json({ error: 'Erro interno do servidor' });
+    res.status(500).json({ error: 'Erro interno do servidor ao processar pedido.' });
+  } finally {
+    client.release();
   }
 }
 
@@ -140,5 +169,3 @@ exports.deletarPedido = async (req, res) => {
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }
-
-

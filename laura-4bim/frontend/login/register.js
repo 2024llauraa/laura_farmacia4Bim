@@ -19,7 +19,7 @@ form.addEventListener('submit', async (e) => {
 
   try {
     // Envia os dados para o backend
-    const response = await fetch('http://localhost:3001/api/auth/register', {
+    const response = await fetch('http://localhost:3001/login/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

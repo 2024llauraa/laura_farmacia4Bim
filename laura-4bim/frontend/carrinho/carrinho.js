@@ -293,7 +293,7 @@ function validarPagamentoCartao() {
     }
     
     if (!/^\d{2}\/\d{2}$/.test(validade)) {
-        mostrarMensagem('Validade inválida. Use o formato MM/AA', 'error');
+        mostrarMensagem('Validade deve estar no formato MM/AA', 'error');
         return false;
     }
     
@@ -449,27 +449,27 @@ async function carregarHistoricoPedidos() {
         }
         
         if (!response.ok) {
-            throw new Error('Erro ao buscar histórico de pedidos');
+            throw new Error('Erro ao carregar histórico');
         }
-
+        
         const pedidos = await response.json();
         
         if (pedidos.length === 0) {
-            listaHistorico.innerHTML = '<p>Você ainda não realizou nenhum pedido.</p>';
-            historicoSection.style.display = 'block';
+            historicoSection.style.display = 'none';
             return;
         }
         
+        // Exibe a seção e renderiza os pedidos
+        historicoSection.style.display = 'block';
         listaHistorico.innerHTML = '';
+        
         pedidos.forEach(pedido => {
-            const card = criarPedidoCard(pedido);
-            listaHistorico.appendChild(card);
+            const pedidoCard = criarPedidoCard(pedido);
+            listaHistorico.appendChild(pedidoCard);
         });
         
-        historicoSection.style.display = 'block';
-
     } catch (error) {
-        console.error('Erro ao carregar histórico de pedidos:', error);
+        console.error('Erro ao carregar histórico:', error);
         historicoSection.style.display = 'none';
     }
 }
@@ -492,4 +492,103 @@ function criarPedidoCard(pedido) {
     
     return card;
 }
+
+// ================================
+// Função para exibir mensagens de status
+// ================================
+function mostrarMensagem(texto, tipo = 'info') {
+    const messageContainer = document.getElementById('messageContainer');
+    if (!messageContainer) {
+        console.warn('Elemento messageContainer não encontrado.');
+        alert(texto); // Fallback para alert se o container não existir
+        return;
+    }
+
+    // Limpa mensagens anteriores
+    messageContainer.innerHTML = '';
+
+    // Cria o elemento da mensagem
+    const message = document.createElement('div');
+    message.className = `alert alert-${tipo}`;
+    message.textContent = texto;
+
+    // Adiciona a mensagem ao container
+    messageContainer.appendChild(message);
+
+    // Opcional: Remover a mensagem após alguns segundos
+    setTimeout(() => {
+        message.remove();
+    }, 5000);
+}
+
+// ================================
+// Confirmação de Pagamento
+// ================================
+async function confirmarPagamento() {
+    const formaPagamentoSelect = document.getElementById('formaPagamento');
+    const idFormaPagamento = formaPagamentoSelect.value;
+    const selectedOption = formaPagamentoSelect.options[formaPagamentoSelect.selectedIndex];
+    const nomeForma = selectedOption.dataset.nome || '';
+
+    if (!idFormaPagamento) {
+        mostrarMensagem('Selecione uma forma de pagamento', 'error');
+        return;
+    }
+
+    // Validação específica para Dinheiro
+    if (nomeForma.includes('dinheiro')) {
+        if (!validarPagamentoDinheiro()) {
+            return;
+        }
+    }
     
+    // Validação específica para Cartão
+    if (nomeForma.includes('cartão') || nomeForma.includes('cartao') || nomeForma.includes('crédito') || nomeForma.includes('credito') || nomeForma.includes('débito') || nomeForma.includes('debito')) {
+        if (!validarPagamentoCartao()) {
+            return;
+        }
+    }
+
+    // Preparar dados do pedido
+    const total = carrinho.reduce((acc, item) => acc + (item.preco_unitario * item.quantidade), 0);
+    const itensPedido = carrinho.map(item => ({
+        id_produto: item.id_produto,
+        quantidade: item.quantidade,
+        preco_unitario: item.preco_unitario
+    }));
+
+    const dadosPedido = {
+        valor_total: total,
+        id_forma_pagamento: idFormaPagamento,
+        itens: itensPedido
+        // Outros dados específicos (troco, parcelas, etc.) podem ser adicionados aqui se necessário
+    };
+
+    mostrarMensagem('Processando pagamento...', 'info');
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/pedido`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include', // Adiciona cookies à requisição
+            body: JSON.stringify(dadosPedido)
+        });
+
+        if (response.ok) {
+            const novoPedido = await response.json();
+            mostrarMensagem(`Pedido #${novoPedido.id_pedido} realizado com sucesso!`, 'success');
+            limparCarrinhoStorage();
+            fecharModalPagamento();
+            renderizarCarrinho();
+            carregarHistoricoPedidos();
+        } else {
+            const error = await response.json();
+            mostrarMensagem(error.error || 'Erro ao finalizar o pedido.', 'error');
+        }
+    } catch (error) {
+        console.error('Erro ao confirmar pagamento:', error);
+        mostrarMensagem('Erro de conexão ao finalizar o pedido.', 'error');
+    }
+}
