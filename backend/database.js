@@ -6,13 +6,14 @@ const dbConfig = {
   port: 5432, // Porta padrão do PostgreSQL
   
 
-  //  user: 'postgres', // Usuário padrão do PostgreSQL (ajuste conforme necessário)
-  //  password: 'parkism_2021',
+   user: 'postgres', // Usuário padrão do PostgreSQL (ajuste conforme necessário)
+   password: 'parkism_2021',
   
- user: 'radames', // na utfpr
-  password: 'Lageado001.',
+ //user: 'radames', // na utfpr
+  //password: 'Lageado001.',
 
-  database: 'laura-farmacia4',
+  //database: 'laura-farmacia4',
+  database: 'farmacia4',
   // Configurações específicas do PostgreSQL
   ssl: false, // Defina como true se usar SSL
   idleTimeoutMillis: 30000, // Timeout para conexões ociosas

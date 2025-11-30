@@ -3,21 +3,27 @@ async function logout() {
   const API_BASE_URL = 'http://localhost:3001';
   try {
    const response = await fetch(API_BASE_URL + 
-      '/api/auth/logout', {      method: 'POST',
+      '/login/logout', {      method: 'POST',
       credentials: 'include' // Envia o cookie
     });
 
     const data = await response.json();
 
-    // O novo controller retorna 'logged' e 'is_funcionario' diretamente
-    const logged = data.logged;
-    const isFuncionario = data.is_funcionario;
-    const nome = data.nome;
-
-    if (data.logged === false) {
-      window.location.href = '../login/login.html';
+    if (response.ok) {
+      // Limpa o localStorage também, por segurança
+      localStorage.removeItem('userCPF');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('isFuncionario');
+      localStorage.removeItem('userCargo');
+      
+      alert('Logout realizado com sucesso!');
+      // Recarrega a mesma página — mais seguro para evitar redirecionamentos
+      // relativos que podem resultar em "Cannot GET /menu.html" quando o
+      // site é servido por um backend que não expõe esse arquivo nessa rota.
+      window.location.reload();
     } else {
-      alert('Erro ao fazer logout.');
+      alert(data.message || 'Erro ao fazer logout.');
     }
   } catch (error) {
     console.error('Erro ao fazer logout:', error);
@@ -30,37 +36,33 @@ async function verificarLogin() {
   const API_BASE_URL = 'http://localhost:3001';
   const loginBtn = document.getElementById('loginBtn');
   const logoutBtn = document.getElementById('logoutBtn');
-  let userNameDisplay = document.getElementById('userNameDisplay');
-
-  if (!userNameDisplay) {
-    userNameDisplay = document.createElement('span');
-    userNameDisplay.id = 'userNameDisplay';
-    userNameDisplay.style.marginRight = '10px';
-    const topoDiv = document.querySelector('.topo');
-    topoDiv.insertBefore(userNameDisplay, loginBtn);
-  }
+  const userNameDisplay = document.getElementById('userNameDisplay');
 
   try {
     const response = await fetch(API_BASE_URL +
-      '/api/auth/verificarLogin', {     method: 'POST',
+      '/login/verificarLogin', {     method: 'POST',
       credentials: 'include' // Envia o cookie
     });
 
     const data = await response.json();
 
-    // O novo controller retorna 'logged' e 'is_funcionario' diretamente
-    const logged = data.logged;
-    const isFuncionario = data.is_funcionario;
-    const nome = data.nome;
+    // O backend tenta validar via cookie, mas em muitos cenários (dev/local) o cookie
+    // HTTP-only/secure pode não estar presente. Usamos localStorage como fallback
+    // para manter a exibição do nome e do papel do usuário.
+    const logged = data.logged || Boolean(localStorage.getItem('userName'));
+    const nome = data.nome || localStorage.getItem('userName');
+    // Precisamos buscar se é funcionário — login.js grava isso no localStorage
+    const isFuncionario = localStorage.getItem('isFuncionario') === 'true';
 
     const menuCadastros = document.getElementById('menuCadastros');
 
     if (logged) {
       loginBtn.style.display = 'none';
       logoutBtn.style.display = 'block';
-      userNameDisplay.textContent = `Olá, ${nome}`;
+     const nomeExibicao = nome || localStorage.getItem('userName');
+      userNameDisplay.textContent = `Olá, ${nomeExibicao}!`;
       
-      // Controle de acesso ao menu de cadastros
+      // Controle de acesso ao menu de cadastros: somente funcionários devem ver o menu
       if (isFuncionario) {
         menuCadastros.style.display = 'block';
       } else {
@@ -70,6 +72,11 @@ async function verificarLogin() {
       loginBtn.style.display = 'block';
       logoutBtn.style.display = 'none';
       userNameDisplay.textContent = '';
+      localStorage.removeItem('userCPF');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('isFuncionario');
+      localStorage.removeItem('userCargo');
       menuCadastros.style.display = 'none'; // Garante que o menu está oculto se não estiver logado
     }
   } catch (error) {
@@ -177,4 +184,4 @@ async function loadProducts() {
 // function handleUserAction(action) { ... }
 // function nomeUsuario() { ... }
 // async function usuarioAutorizado() { ... }
-// async function logout2() { ... }
+// async function logout2()

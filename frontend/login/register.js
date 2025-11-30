@@ -6,10 +6,17 @@ form.addEventListener('submit', async (e) => {
 
   const nome = document.getElementById('nome').value.trim();
   const cpf = document.getElementById('cpf').value.trim();
+  const cpfLimpo = cpf.replace(/[^0-9]/g, '');
+  // Validação de CPF (11 dígitos) no frontend
+  if (cpfLimpo.length !== 11) {
+    alert('CPF incorreto. Deve conter 11 dígitos.');
+    return;
+  }
   const email = document.getElementById('email').value.trim();
   const senha = document.getElementById('senha').value.trim();
   const data_nascimento = document.getElementById('data_nascimento').value;
   const endereco = document.getElementById('endereco').value.trim();
+  
 
   // Validações básicas
   if  ( !nome || !cpf || !email || !senha || !endereco) {
@@ -44,7 +51,7 @@ form.addEventListener('submit', async (e) => {
       alert('Cadastro realizado com sucesso! Faça login para continuar.');
       window.location.href = './login.html';
     } else {
-      alert(data.message || 'Erro ao cadastrar. Tente novamente.');
+      alert(data.error || 'Erro ao cadastrar. Tente novamente.');
     }
   } catch (error) {
     console.error('Erro ao cadastrar:', error);

@@ -1,5 +1,86 @@
 const db = require('../database.js');
-const bcrypt = require('bcryptjs');
+// const bcrypt = require('bcryptjs'); // Removido conforme solicitação do usuário
+
+// Função de Login
+exports.login = async (req, res) => {
+  const { email_cpf, senha_pessoa } = req.body;
+
+  if (!email_cpf || !senha_pessoa) {
+    return res.status(400).json({ error: 'E-mail/CPF e senha são obrigatórios.' });
+  }
+
+  try {
+    // Tenta encontrar a pessoa por email ou CPF
+    const result = await db.query(
+      'SELECT p.cpf_pessoa, p.nome_pessoa, p.email_pessoa, p.senha_pessoa, CASE WHEN f.pessoa_cpf_pessoa IS NOT NULL THEN TRUE ELSE FALSE END AS is_funcionario FROM pessoa p LEFT JOIN funcionario f ON p.cpf_pessoa = f.pessoa_cpf_pessoa WHERE p.email_pessoa = $1 OR p.cpf_pessoa = $1',
+      [email_cpf]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Credenciais inválidas.' });
+    }
+
+    const user = result.rows[0];
+
+    // Compara a senha fornecida com a senha no banco de dadoso
+    const isMatch = senha_pessoa === user.senha_pessoa;
+
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Credenciais inválidas.' });
+    }
+
+    // Configura os cookies de sessão
+    res.cookie('usuarioLogado', user.nome_pessoa, {
+      sameSite: 'None',
+      secure: true,
+      httpOnly: true,
+      path: '/',
+      maxAge: 24 * 60 * 60 * 1000, // 1 dia
+    });
+
+    res.cookie('usuarioCpf', user.cpf_pessoa, {
+      sameSite: 'None',
+      secure: true,
+      httpOnly: true,
+      path: '/',
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    res.json({
+      message: 'Login bem-sucedido.',
+      user: {
+        cpf: user.cpf_pessoa,
+        nome: user.nome_pessoa,
+        email: user.email_pessoa, is_funcionario: user.is_funcionario
+      },
+      logged: true
+    });
+
+  } catch (err) {
+    console.error('❌ Erro no login:', err);
+    res.status(500).json({ error: 'Erro ao realizar login.' });
+  }
+};
+
+// Função para verificar se o usuário está logado
+exports.verificarLogin = (req, res) => {
+  if (req.cookies.usuarioLogado && req.cookies.usuarioCpf) {
+    res.json({
+      logged: true,
+      nome: req.cookies.usuarioLogado,
+      cpf: req.cookies.usuarioCpf
+    });
+  } else {
+    res.json({ logged: false });
+  }
+};
+
+// Função de Logout
+exports.logout = (req, res) => {
+  res.clearCookie('usuarioLogado', { path: '/', sameSite: 'None', secure: true });
+  res.clearCookie('usuarioCpf', { path: '/', sameSite: 'None', secure: true });
+  res.json({ message: 'Logout bem-sucedido.' });
+};
 
 exports.registro = async (req, res) => {
   console.log("vai - loginController -> registro");
@@ -17,6 +98,12 @@ exports.registro = async (req, res) => {
   if (!nome_pessoa || !email_pessoa || !senha_pessoa) {
     return res.status(400).json({ error: 'Nome, e-mail e senha são obrigatórios.' });
   }
+
+  // Validação de CPF (11 dígitos)
+    const cpfLimpo = cpf_pessoa ? cpf_pessoa.replace(/[^0-9]/g, '') : '';
+    if (cpfLimpo.length !== 11) {
+      return res.status(400).json({ error: 'CPF incorreto. Deve conter 11 dígitos.' });
+    }
 
   if (!cpf_pessoa || cpf_pessoa.length !== 11) {
     return res.status(400).json({ error: 'CPF deve ter 11 dígitos.' });
@@ -47,16 +134,12 @@ exports.registro = async (req, res) => {
       }
     }
 
-    // Criptografar a senha
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(senha_pessoa, salt);
-
-    // Inserir pessoa
+   // Senha não hasheada, conforme solicitado pelo usuário // Inserir pessoa
     const resultPessoa = await db.query(
       `INSERT INTO pessoa (cpf_pessoa, nome_pessoa,email_pessoa, senha_pessoa,data_nascimento_pessoa,endereco_pessoa)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING cpf_pessoa, nome_pessoa,email_pessoa, senha_pessoa,data_nascimento_pessoa,endereco_pessoa`,
-      [cpf_pessoa, nome_pessoa,email_pessoa, senha_pessoa,data_nascimento_pessoa,endereco_pessoa] // Usar a senha criptografada
+      [cpf_pessoa, nome_pessoa,email_pessoa, senha_pessoa,data_nascimento_pessoa,endereco_pessoa] // Usar a senha não hasheada
     );
 
     console.log("chegou aqui");
@@ -93,7 +176,7 @@ exports.registro = async (req, res) => {
       user: {
         cpf: user.cpf_pessoa,
         nome: user.nome_pessoa,
-        email: user.email_pessoa
+        email: user.email_pessoa, is_funcionario: user.is_funcionario
       },
       logged: true
     });
@@ -121,11 +204,7 @@ exports.criarPessoa = async (req, res) => {
   console.log('Criando pessoa com dados:', req.body);
   try {
     const { cpf_pessoa, nome_pessoa, email_pessoa, senha_pessoa, data_nascimento_pessoa, endereco_pessoa } = req.body;
-
-    // Criptografar a senha
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(senha_pessoa, salt);
-
+// Senha não hasheada, conforme solicitado pelo usuário
     // Validação básica
     if (!cpf_pessoa || !nome_pessoa || !email_pessoa || !senha_pessoa) {
       return res.status(400).json({
@@ -143,7 +222,7 @@ exports.criarPessoa = async (req, res) => {
 
     const result = await db.query(
       'INSERT INTO pessoa (cpf_pessoa, nome_pessoa, email_pessoa, senha_pessoa, data_nascimento_pessoa, endereco_pessoa) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [cpf_pessoa, nome_pessoa, email_pessoa, hashedPassword, data_nascimento_pessoa, endereco_pessoa]
+      [cpf_pessoa, nome_pessoa, email_pessoa, senha_pessoa, data_nascimento_pessoa, endereco_pessoa]
     );
 
     res.status(201).json(result.rows[0]);

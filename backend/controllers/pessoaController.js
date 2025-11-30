@@ -36,6 +36,14 @@ exports.criarPessoa = async (req, res) => {
   try {
     const { cpf_pessoa, nome_pessoa, data_nascimento_pessoa, endereco_pessoa, senha_pessoa, email_pessoa } = req.body;
 
+    // Validação de CPF (11 dígitos)
+    // Remove caracteres não numéricos e verifica o tamanho
+    const cpfLimpo = cpf_pessoa.replace(/[^0-9]/g, '');
+    if (cpfLimpo.length !== 11) {
+      return res.status(400).json({
+        error: 'CPF incorreto. Deve conter 11 dígitos.'
+      });
+    }
     // Validação básica
     if (!nome_pessoa || !endereco_pessoa || !senha_pessoa || !email_pessoa) {
       return res.status(400).json({
