@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios de Vendas - Farmácia</title>
+    <link rel="stylesheet" href="../menu.css">
+    <link rel="stylesheet" href="relatorio.css">
+</head>
+<body>
+    <header>
+        <nav id="menu-container"></nav>
+    </header>
+
+    <main class="container">
+        <h1>Relatórios de Vendas</h1>
+
+        <!-- Relatório de Vendas do Mês -->
+        <section class="relatorio-card" id="vendas-mes-card">
+            <h2>Vendas do Mês Atual</h2>
+            <div class="vendas-info">
+                <p>Mês Atual: <span id="mes-atual-periodo"></span></p>
+                <p>Total de Vendas: <strong id="vendas-mes-atual">R$ 0,00</strong></p>
+            </div>
+            <div class="vendas-comparacao">
+                <h3>Comparação com Mês Anterior</h3>
+                <p>Mês Anterior: <span id="mes-anterior-periodo"></span></p>
+                <p>Total de Vendas: <span id="vendas-mes-anterior">R$ 0,00</span></p>
+                <p>Status: <strong id="status-vendas"></strong></p>
+                <p>Diferença: <span id="diferenca-vendas">R$ 0,00</span> (<span id="percentual-vendas">0.00%</span>)</p>
+            </div>
+        </section>
+
+        <!-- Produtos Mais Vendidos -->
+        <section class="relatorio-card" id="produtos-vendidos-card">
+            <h2>Produtos Mais Vendidos</h2>
+            <div class="filtro-periodo">
+                <label for="filtro-periodo">Filtrar por:</label>
+                <select id="filtro-periodo">
+                    <option value="dia">Dia</option>
+                    <option value="semana">Semana</option>
+                    <option value="mes" selected>Mês</option>
+                    <option value="ano">Ano</option>
+                </select>
+                <button id="btn-filtrar">Filtrar</button>
+            </div>
+            
+            <table class="tabela-produtos">
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Quantidade Vendida</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-produtos-body">
+                    <tr><td colspan="2">Carregando...</td></tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <script src="../menu.js"></script>
+    <script src="relatorio.js"></script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+.container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.relatorio-card {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border-left: 5px solid #007bff; /* Cor primária */
+}
+
+.relatorio-card h2 {
+    color: #007bff;
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.vendas-info, .vendas-comparacao {
+    margin-bottom: 15px;
+}
+
+.vendas-comparacao h3 {
+    color: #555;
+    font-size: 1.1em;
+    margin-top: 10px;
+}
+
+#status-vendas {
+    font-weight: bold;
+}
+
+.status-alta {
+    color: green;
+}
+
+.status-baixa {
+    color: red;
+}
+
+.status-estavel {
+    color: orange;
+}
+
+/* Produtos Mais Vendidos */
+.filtro-periodo {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.filtro-periodo label {
+    font-weight: bold;
+}
+
+.filtro-periodo select, .filtro-periodo button {
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.filtro-periodo button {
+    background-color: #28a745; /* Cor de sucesso */
+    color: white;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s;
+}
+
+.filtro-periodo button:hover {
+    background-color: #218838;
+}
+
+.tabela-produtos {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabela-produtos th, .tabela-produtos td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.tabela-produtos th {
+    background-color: #007bff;
+    color: white;
+}
+
+.tabela-produtos tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.tabela-produtos tr:hover {
+    background-color: #ddd;
+}

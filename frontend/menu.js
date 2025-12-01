@@ -55,6 +55,7 @@ async function verificarLogin() {
     const isFuncionario = localStorage.getItem('isFuncionario') === 'true';
 
     const menuCadastros = document.getElementById('menuCadastros');
+    const menuRelatorios = document.getElementById('menuRelatorios');
 
     if (logged) {
       loginBtn.style.display = 'none';
@@ -62,11 +63,17 @@ async function verificarLogin() {
      const nomeExibicao = nome || localStorage.getItem('userName');
       userNameDisplay.textContent = `Olá, ${nomeExibicao}!`;
       
-      // Controle de acesso ao menu de cadastros: somente funcionários devem ver o menu
+      // Controle de acesso ao menu de cadastros e relatorios: somente funcionários devem ver o menu
       if (isFuncionario) {
         menuCadastros.style.display = 'block';
+        if (menuRelatorios) {
+          menuRelatorios.style.display = 'block';
+        }
       } else {
         menuCadastros.style.display = 'none';
+        if (menuRelatorios) {
+          menuRelatorios.style.display = 'none';
+        }
       }
     } else {
       loginBtn.style.display = 'block';
@@ -78,6 +85,9 @@ async function verificarLogin() {
       localStorage.removeItem('isFuncionario');
       localStorage.removeItem('userCargo');
       menuCadastros.style.display = 'none'; // Garante que o menu está oculto se não estiver logado
+      if (menuRelatorios) {
+        menuRelatorios.style.display = 'none';
+      }
     }
   } catch (error) {
     console.error('Erro ao verificar login:', error);

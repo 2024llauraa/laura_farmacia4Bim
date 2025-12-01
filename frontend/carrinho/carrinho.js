@@ -566,7 +566,9 @@ async function confirmarPagamento() {
 
     mostrarMensagem('Processando pagamento...', 'info');
 
+
     try {
+        // A rota correta para criar o pedido e registrar o pagamento é /pedido (pedidoController.js)
         const response = await fetch(`${API_BASE_URL}/pedido`, {
             method: 'POST',
             headers: {
@@ -575,6 +577,7 @@ async function confirmarPagamento() {
             credentials: 'include', // Adiciona cookies à requisição
             body: JSON.stringify(dadosPedido)
         });
+// ...
 
         if (response.ok) {
             const novoPedido = await response.json();

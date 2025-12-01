@@ -12,9 +12,9 @@ router.get('/abrirCarrinho', (req, res) => {
 router.get('/formas-pagamento', carrinhoController.getFormasPagamento);
 router.get('/usuario', carrinhoController.getCpfUsuario);
 router.get('/historico-pedidos', carrinhoController.getHistoricoPedidos);
-router.post('/finalizar', carrinhoController.finalizarPedido);
-router.post('/pagamento', carrinhoController.processarPagamento);
-router.get('/pedido/:id', carrinhoController.getPedido);
-router.get('/pedidos', carrinhoController.listarPedidos);
+//router.post('/finalizar', carrinhoController.finalizarPedido);
+//router.post('/pagamento', carrinhoController.processarPagamento);
+//router.get('/pedido/:id', carrinhoController.getPedido);
+//router.get('/pedidos', carrinhoController.listarPedidos);
 
 module.exports = router;

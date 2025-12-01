@@ -31,16 +31,12 @@ exports.login = async (req, res) => {
 
     // Configura os cookies de sessão
     res.cookie('usuarioLogado', user.nome_pessoa, {
-      sameSite: 'None',
-      secure: true,
       httpOnly: true,
       path: '/',
       maxAge: 24 * 60 * 60 * 1000, // 1 dia
     });
 
-    res.cookie('usuarioCpf', user.cpf_pessoa, {
-      sameSite: 'None',
-      secure: true,
+    res.cookie('cpfUsuario', user.cpf_pessoa, {
       httpOnly: true,
       path: '/',
       maxAge: 24 * 60 * 60 * 1000,
@@ -64,11 +60,11 @@ exports.login = async (req, res) => {
 
 // Função para verificar se o usuário está logado
 exports.verificarLogin = (req, res) => {
-  if (req.cookies.usuarioLogado && req.cookies.usuarioCpf) {
+  if (req.cookies.usuarioLogado && req.cookies.cpfUsuario) {
     res.json({
       logged: true,
       nome: req.cookies.usuarioLogado,
-      cpf: req.cookies.usuarioCpf
+      cpf: req.cookies.cpfUsuario
     });
   } else {
     res.json({ logged: false });
@@ -77,8 +73,8 @@ exports.verificarLogin = (req, res) => {
 
 // Função de Logout
 exports.logout = (req, res) => {
-  res.clearCookie('usuarioLogado', { path: '/', sameSite: 'None', secure: true });
-  res.clearCookie('usuarioCpf', { path: '/', sameSite: 'None', secure: true });
+  res.clearCookie('usuarioLogado', { path: '/' });
+  res.clearCookie('cpfUsuario', { path: '/' });
   res.json({ message: 'Logout bem-sucedido.' });
 };
 
@@ -156,16 +152,12 @@ exports.registro = async (req, res) => {
 
     // Criar cookie de sessão
     res.cookie('usuarioLogado', user.nome_pessoa, {
-      sameSite: 'None',
-      secure: true,
       httpOnly: true,
       path: '/',
       maxAge: 24 * 60 * 60 * 1000, // 1 dia
     });
 
-    res.cookie('usuarioCpf', user.cpf_pessoa, {
-      sameSite: 'None',
-      secure: true,
+    res.cookie('cpfUsuario', user.cpf_pessoa, {
       httpOnly: true,
       path: '/',
       maxAge: 24 * 60 * 60 * 1000,

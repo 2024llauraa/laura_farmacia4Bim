@@ -80,6 +80,9 @@ app.use((err, req, res, next) => {
 // só mexa nessa parte
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Importando as rotas
+const relatorioRoutes = require('./routes/relatorioRoutes');
+app.use('/relatorio', relatorioRoutes);
+
 const loginRoutes = require('./routes/loginRoutes');
 app.use('/login', loginRoutes);
 

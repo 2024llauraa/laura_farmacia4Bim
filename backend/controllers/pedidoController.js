@@ -38,10 +38,10 @@ exports.criarPedido = async (req, res) => {
 
     // 1. Inserir o Pedido
     const pedidoSql = `
-      INSERT INTO pedido (data_pedido, valor_total, id_forma_pagamento, cliente_pessoa_cpf_pessoa)
-      VALUES ($1, $2, $3, $4) RETURNING id_pedido;
+      INSERT INTO pedido (data_pedido, cliente_pessoa_cpf_pessoa)
+      VALUES ($1, $2) RETURNING id_pedido;
     `;
-    const pedidoResult = await client.query(pedidoSql, [data_pedido, valor_total, id_forma_pagamento, cpfCliente]);
+    const pedidoResult = await client.query(pedidoSql, [data_pedido, cpfCliente]);
     const id_pedido = pedidoResult.rows[0].id_pedido;
 
     // 2. Inserir os Itens do Pedido
@@ -52,6 +52,20 @@ exports.criarPedido = async (req, res) => {
       `;
       await client.query(itemSql, [id_pedido, item.id_produto, item.quantidade, item.preco_unitario]);
     }
+    
+    // 3. Inserir o Pagamento
+    const pagamentoSql = `
+      INSERT INTO pagamento (pedido_id_pedido, data_pagamento, valor_total_pagamento)
+      VALUES ($1, CURRENT_TIMESTAMP, $2);
+    `;
+    await client.query(pagamentoSql, [id_pedido, valor_total]);
+
+    // 4. Inserir o relacionamento Pagamento_has_Forma_Pagamento
+    const pagFormaSql = `
+      INSERT INTO pagamento_has_forma_pagamento (pagamento_id_pedido, forma_pagamento_id_forma_pagamento, valor_pago)
+      VALUES ($1, $2, $3);
+    `;
+    await client.query(pagFormaSql, [id_pedido, id_forma_pagamento, valor_total]);
 
     await client.query('COMMIT');
     res.status(201).json({ id_pedido, message: 'Pedido criado com sucesso.' });
