@@ -18,6 +18,7 @@
         <!-- Relatório de Vendas do Mês -->
         <section class="relatorio-card" id="vendas-mes-card">
             <h2>Vendas do Mês Atual</h2>
+            <button class="btn-imprimir" onclick="imprimirRelatorio('vendas-mes-card')">🖨️ Imprimir</button>
             <div class="vendas-info">
                 <p>Mês Atual: <span id="mes-atual-periodo"></span></p>
                 <p>Total de Vendas: <strong id="vendas-mes-atual">R$ 0,00</strong></p>
@@ -34,6 +35,7 @@
         <!-- Produtos Mais Vendidos -->
         <section class="relatorio-card" id="produtos-vendidos-card">
             <h2>Produtos Mais Vendidos</h2>
+             <button class="btn-imprimir" onclick="imprimirRelatorio('produtos-vendidos-card')">🖨️ Imprimir</button>
             <div class="filtro-periodo">
                 <label for="filtro-periodo">Filtrar por:</label>
                 <select id="filtro-periodo">

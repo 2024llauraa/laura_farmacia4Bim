@@ -60,7 +60,7 @@ header {
 
 /* Botão do Carrinho */
 #carrinhoBtn {
-    background-color: #e74c3c;
+    background-color: #2ecc71;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -72,9 +72,9 @@ header {
 }
 
 #carrinhoBtn:hover {
-    background-color: #c0392b;
+    background-color: #27ae60;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+    box-shadow: 0 4px 12px rgba(60, 231, 69, 0.3);
 }
 
 #carrinhoBtn:active {
@@ -83,7 +83,7 @@ header {
 
 #carrinhoCount {
     background-color: white;
-    color: #e74c3c;
+    color: #2ecc71;
     padding: 2px 8px;
     border-radius: 10px;
     font-weight: bold;

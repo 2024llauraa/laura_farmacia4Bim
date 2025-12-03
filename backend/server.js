@@ -21,12 +21,19 @@ app.use(express.static(caminhoFrontend));
 
 // >>>>>>>>>>> SERVINDO PASTA DE IMAGENS <<<<<<<<<<
 
-const caminhoImagensProduto = path.join(__dirname, '../imagens', 'produto');
+const caminhoImagens = path.join(__dirname, '../imagens');
+console.log('Caminho Imagens:', caminhoImagens);
+
+// Mapeamos a pasta real para a rota virtual '/imagens'
+// A URL para acessar as imagens será: http://localhost:3001/imagens/nome_da_imagem.png
+app.use('/imagens', express.static(caminhoImagens));
+
+const caminhoImagensProduto = path.join(__dirname, '../imagens');
 console.log('Caminho Imagens Produto:', caminhoImagensProduto);
 
 // Mapeamos a pasta real para a rota virtual '/imagens-produtos'
 // A URL para acessar as imagens será: http://localhost:3001/imagens-produtos/nome_da_imagem.jpeg
-app.use('/imagens-produtos', express.static(caminhoImagensProduto));
+app.use('/imagens', express.static(caminhoImagensProduto));
 
 // >>>>>>>>>>> FIM DO AJUSTE <<<<<<<<<<
 
@@ -109,6 +116,9 @@ app.use('/pedido_has_produto', pedido_has_produtoRoutes);
 
 const carrinhoRoutes = require('./routes/carrinhoRoutes');
 app.use('/carrinho', carrinhoRoutes);
+
+//const imageRoutes = require('./routes/imageRoutes');
+//app.use('/upload-image', imageRoutes);
 
 //clienteRoutes tem que vir antes de pessoaRoutes
 const clienteRoutes = require('./routes/clienteRoutes');

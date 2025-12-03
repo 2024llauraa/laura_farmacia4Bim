@@ -38,7 +38,7 @@ const categoriasMap = {
 document.addEventListener('DOMContentLoaded', () => {
     carregarProdutos();
     carregarCategorias();
-    imgProdutoVisualizacao.src = '/imagens-produtos/000.png';
+    imgProdutoVisualizacao.src = '/imagens/000.png';
 });
 
 // Eventos
@@ -72,7 +72,7 @@ function bloquearCampos(bloquearPrimeiro) {
 
 function limparFormulario() {
     form.reset();
-    imgProdutoVisualizacao.src = '/imagens-produtos/000.png';
+    imgProdutoVisualizacao.src = '/imagens/000.png';
     imgProdutoVisualizacao.alt = 'Imagem Padrão';
 }
 
@@ -139,10 +139,10 @@ async function preencherFormulario(produto) {
     img.style.width = '200px';
     img.style.height = '200px';
     img.onerror = () => {
-        img.src = '/imagens-produtos/000.png';
+        img.src = '/imagens/000.png';
         img.alt = 'Imagem Padrão';
     };
-    img.src = `/imagens-produtos/${produto.id_produto}.png?t=${Date.now()}`;
+    img.src = `/imagens/${produto.id_produto}.png?t=${Date.now()}`;
 }
 
 // ===============================
@@ -246,6 +246,10 @@ async function salvarOperacao() {
 
         if (response.ok) {
             mostrarMensagem(`Operação ${operacao} realizada com sucesso!`, 'success');
+            // Tenta fazer o upload da imagem após o sucesso da operação de produto
+            if (operacao !== 'excluir') {
+                await handleImageUpload(true); // Passa true para indicar que é uma chamada automática
+            }
             limparFormulario();
             carregarProdutos();
         } else {
@@ -278,46 +282,60 @@ function cancelarOperacao() {
 // UPLOAD DE IMAGEM
 // ===============================
 
-async function handleImageUpload() {
+async function handleImageUpload(isAutoCall = false) {
     const id = searchId.value.trim();
+
     if (!id || (operacao !== 'alterar' && operacao !== 'incluir')) {
-        mostrarMensagem('Busque ou inclua o produto e esteja no modo de edição/inclusão.', 'warning');
+        if (!isAutoCall) {
+            mostrarMensagem('Busque ou inclua o produto e esteja no modo de edição/inclusão.', 'warning');
+        }
         return;
     }
 
     const file = imgProdutoInput.files[0];
     const url = imgURL.value.trim();
+
     if (!file && !url) {
-        mostrarMensagem('Selecione um arquivo local OU insira uma URL.', 'warning');
+        if (!isAutoCall) {
+            mostrarMensagem('Selecione um arquivo local OU insira uma URL.', 'warning');
+        }
         return;
     }
 
     const formData = new FormData();
     formData.append('produtoId', id);
+
     if (file) {
         formData.append('imageSource', 'local');
         formData.append('imageFile', file);
-    } else if (url) {
+    } else {
         formData.append('imageSource', 'url');
         formData.append('imageUrl', url);
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/upload-image`, { method: 'POST', body: formData });
+        const response = await fetch(`${API_BASE_URL}/upload-image`, {
+            method: 'POST',
+            body: formData
+        });
+
         if (response.ok) {
-            imgProdutoVisualizacao.src = `/imagens-produtos/${id}.png?t=${Date.now()}`;
-            mostrarMensagem('Imagem salva com sucesso!', 'success');
+            imgProdutoVisualizacao.src = `/imagens/${id}.png?t=${Date.now()}`;
+            if (!isAutoCall) mostrarMensagem('Imagem salva com sucesso!', 'success');
             imgProdutoInput.value = '';
             imgURL.value = '';
         } else {
             const error = await response.json();
-            throw new Error(error.message || 'Falha ao salvar a imagem.');
+            throw new Error(error.message);
         }
     } catch (error) {
         console.error('Erro upload:', error);
-        mostrarMensagem('Erro ao salvar imagem: ' + error.message, 'error');
+        if (!isAutoCall) {
+            mostrarMensagem('Erro ao salvar imagem: ' + error.message, 'error');
+        }
     }
 }
+
 
 // ===============================
 // LISTAGEM DE PRODUTOS

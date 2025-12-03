@@ -176,7 +176,7 @@ async function loadProducts() {
       
       card.innerHTML = `
         <div class="product-price">R$ ${produto.preco_unitario_produto.toFixed(2).replace('.', ',')}</div>
-        <img src="http://localhost:3001/imagens-produtos/${imageName}.jpg" alt="${produto.nome_produto}" class="product-image">
+        <img src="http://localhost:3001/imagens/${produto.id_produto}.jpg" alt="${produto.nome_produto}" class="product-image">
         <div class="product-name">${produto.nome_produto}</div>
         <button class="add-to-cart-btn" onclick="addToCart(${produto.id_produto})">+</button>
       `;
@@ -184,9 +184,7 @@ async function loadProducts() {
     });
 
   } catch (error) {
-    console.error('Erro ao carregar produtos:', error);
-    alert('Não foi possível carregar os produtos. Verifique o backend.');
-    // Mantém o conteúdo estático como fallback visual
+    console.log('deu certo?');
   }
 }
 

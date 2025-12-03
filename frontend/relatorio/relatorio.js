@@ -1,4 +1,36 @@
-const API_BASE_URL = 'http://localhost:3001'; // Ajuste conforme a porta do seu backend
+const API_BASE_URL = ''; // Ajuste conforme a porta do seu backend
+
+// Função para imprimir o conteúdo de um elemento
+function imprimirRelatorio(elementId) {
+    const printContents = document.getElementById(elementId).innerHTML;
+    const originalContents = document.body.innerHTML;
+
+    // Cria uma nova janela/aba para impressão
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write('<html><head><title>Relatório de Impressão</title>');
+    // Inclui os estilos CSS
+    printWindow.document.write('<link rel="stylesheet" href="../menu.css">');
+    printWindow.document.write('<link rel="stylesheet" href="relatorio.css">');
+    printWindow.document.write('</head><body>');
+    
+    // Remove o botão de impressão do conteúdo a ser impresso
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = printContents;
+    const btnImprimir = tempDiv.querySelector('.btn-imprimir');
+    if (btnImprimir) {
+        btnImprimir.remove();
+    }
+    
+    printWindow.document.write(tempDiv.innerHTML);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    
+    // Espera um pouco para o conteúdo carregar e então imprime
+    printWindow.onload = function() {
+        printWindow.print();
+        printWindow.close();
+    };
+}
 
 // Função para formatar valores monetários
 const formatCurrency = (value) => {

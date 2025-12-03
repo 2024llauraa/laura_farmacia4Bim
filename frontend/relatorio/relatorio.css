@@ -15,14 +15,15 @@ h1 {
 
 .relatorio-card {
     background-color: #f9f9f9;
+    position: relative;
     padding: 20px;
     border-radius: 6px;
     margin-bottom: 20px;
-    border-left: 5px solid #007bff; /* Cor primária */
+    border-left: 5px solid #1abc9c; /* Cor primária turquesa */
 }
 
 .relatorio-card h2 {
-    color: #007bff;
+    color: #1abc9c;
     margin-top: 0;
     border-bottom: 1px solid #eee;
     padding-bottom: 10px;
@@ -44,15 +45,15 @@ h1 {
 }
 
 .status-alta {
-    color: green;
+    color: #2ecc71;
 }
 
 .status-baixa {
-    color: red;
+    color: #e74c3c;
 }
 
 .status-estavel {
-    color: orange;
+    color: #f39c12;
 }
 
 /* Produtos Mais Vendidos */
@@ -74,7 +75,7 @@ h1 {
 }
 
 .filtro-periodo button {
-    background-color: #28a745; /* Cor de sucesso */
+    background-color: #2ecc71; /* Cor de sucesso verde */
     color: white;
     cursor: pointer;
     border: none;
@@ -82,7 +83,7 @@ h1 {
 }
 
 .filtro-periodo button:hover {
-    background-color: #218838;
+    background-color: #27ae60;
 }
 
 .tabela-produtos {
@@ -97,8 +98,34 @@ h1 {
 }
 
 .tabela-produtos th {
-    background-color: #007bff;
+    background-color: #1abc9c;
     color: white;
+}
+
+/* Estilo para o botão de impressão */
+.btn-imprimir {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 8px 15px;
+    background-color: #16a085; /* Verde escuro */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s;
+}
+
+.btn-imprimir:hover {
+    background-color: #0e6251;
+}
+
+/* Ocultar o botão de impressão na versão impressa */
+@media print {
+    .btn-imprimir {
+        display: none;
+    }
 }
 
 .tabela-produtos tr:nth-child(even) {
@@ -106,5 +133,5 @@ h1 {
 }
 
 .tabela-produtos tr:hover {
-    background-color: #ddd;
+    background-color: #d1f2eb;
 }
